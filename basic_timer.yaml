@@ -1,0 +1,12 @@
+# Basic timer example with logging
+routes:
+  - name: "hello_world_timer"
+    from: "timer:tick"
+    parameters:
+      period: 5000  # 5 seconds
+    
+    processors:
+      - type: "transform"
+        template: "Hello, World! The time is {{now()}}"
+    
+    to: "log:info"

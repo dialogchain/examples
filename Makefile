@@ -55,9 +55,10 @@ install-deps:
 
 # Development
 test:
-	@echo "🔧 Setting up test environment..."
-	cd ../python && pip install -e ".[test]"
-	cd ../python && python -m pytest -v
+	@echo "🔧 Installing test dependencies..."
+	pip install pytest pytest-cov
+	@echo "🚀 Running tests..."
+	cd ../python && PYTHONPATH=$PYTHONPATH:. python -m pytest tests/ -v
 	@echo "✅ Tests completed"
 
 lint:
