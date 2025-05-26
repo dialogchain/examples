@@ -56,7 +56,8 @@ install-deps:
 # Development
 test:
 	@echo "🔧 Installing test dependencies..."
-	pip install pytest pytest-cov
+	pip install -r ../python/requirements-dev.txt
+	cd ../python && pip install -e .
 	@echo "🚀 Running tests..."
 	cd ../python && PYTHONPATH=$PYTHONPATH:. python -m pytest tests/ -v
 	@echo "✅ Tests completed"
