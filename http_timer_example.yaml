@@ -1,0 +1,29 @@
+# HTTP and Timer Example
+routes:
+  # Simple HTTP endpoint
+  - name: "http_hello_world"
+    from: "http://0.0.0.0:8080/hello"
+    
+    processors:
+      - type: "transform"
+        template: |
+          {
+            "message": "Hello, World!",
+            "timestamp": "{{now()}}",
+            "request_path": "{{request.path}}",
+            "request_method": "{{request.method}}"
+          }
+    
+    to: "http:response"
+    
+  # Timer example that logs every 5 seconds
+  - name: "hello_world_timer"
+    from: "timer:tick"
+    parameters:
+      period: 5000  # 5 seconds
+    
+    processors:
+      - type: "transform"
+        template: "Timer event at {{now()}}"
+    
+    to: "log:info"

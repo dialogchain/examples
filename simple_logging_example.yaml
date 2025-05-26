@@ -1,0 +1,12 @@
+# Simple Logging Example
+routes:
+  - name: "hello_world_timer"
+    from: "timer:tick"
+    parameters:
+      period: 2000  # 2 seconds
+    
+    processors:
+      - type: "transform"
+        template: "Hello, World! The time is {{now()}}"
+    
+    to: "log:info"
