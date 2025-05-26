@@ -56,7 +56,15 @@ install-deps:
 # Development
 test:
 	@echo "🔧 Installing test dependencies..."
-	pip install -r ../python/requirements-dev.txt
+	pip install \
+		aiohttp \
+		asyncio-mqtt \
+		pytest \
+		pytest-asyncio \
+		pytest-cov \
+		pytest-mock \
+		pytest-timeout \
+		pytest-xdist
 	cd ../python && pip install -e .
 	@echo "🚀 Running tests..."
 	cd ../python && PYTHONPATH=$PYTHONPATH:. python -m pytest tests/ -v

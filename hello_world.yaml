@@ -1,0 +1,12 @@
+# Hello World Example for DialogChain
+routes:
+  - name: "hello_world"
+    from: "timer:tick"
+    parameters:
+      period: 3000  # 3 seconds
+    
+    processors:
+      - type: "transform"
+        template: "Hello, World! The time is {{now()}}"
+    
+    to: "log:info"
