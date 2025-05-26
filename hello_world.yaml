@@ -1,12 +1,101 @@
 # Hello World Example for DialogChain
+# This example demonstrates various DialogChain features
+
+# Global settings
+settings:
+  log_level: "info"
+  max_concurrent_routes: 10
+  default_timeout: 30
+
+# Environment variables (can be set in .env file)
+env_vars:
+  - GREETING_NAME
+  - LOG_LEVEL
+
+# Route definitions
 routes:
-  - name: "hello_world"
+  # Simple timer-based greeting
+  - name: "greeting_timer"
+    description: "Sends a greeting message at regular intervals"
     from: "timer:tick"
     parameters:
-      period: 3000  # 3 seconds
+      period: 5000  # 5 seconds
     
     processors:
+      # Add timestamp and transform message
       - type: "transform"
-        template: "Hello, World! The time is {{now()}}"
+        template: |
+          {
+            "message": "Hello, {{env.GREETING_NAME or 'World'}}!",
+            "timestamp": "{{now()}}",
+            "source": "timer",
+            "count": {{counter()}}
+          }
     
-    to: "log:info"
+    # Multiple destinations
+    to:
+      - "log:info"  # Log to console
+      - "file:greetings.log"  # Log to file
+
+  # HTTP endpoint example
+  - name: "http_greeting"
+    description: "Responds to HTTP requests with a greeting"
+    from: "http://0.0.0.0:8080/greet"
+    
+    processors:
+      # Extract name from request or use default
+      - type: "transform"
+        template: |
+          {
+            "message": "Hello, {{request.query.name or 'there'}}!",
+            "timestamp": "{{now()}}",
+            "method": "{{request.method}}",
+            "path": "{{request.path}}",
+            "query": {{request.query or {}}},
+            "headers": {{request.headers or {}}},
+            "body": {{request.body or {}}},
+            "source": "http"
+          }
+      
+      # Add processing metadata
+      - type: "transform"
+        template: |
+          {
+            **message,
+            "processed_at": "{{now()}}",
+            "processing_time_ms": {{processing_time()}}
+          }
+    
+    # Return response
+    to: "http:response"
+
+  # File watcher example (commented out by default)
+  # - name: "file_watcher"
+  #   description: "Processes new files in a directory"
+  #   from: "file:./input?events=create"
+  #   
+  #   processors:
+  #     - type: "transform"
+  #       template: |
+  #         {
+  #           "event": "file_created",
+  #           "filename": "{{message.filename}}",
+  #           "timestamp": "{{now()}}",
+  #           "content": "{{read_file(message.filename) | truncate(100)}}"
+  #         }
+  #   
+  #   to: "log:info"
+
+# Error handling
+error_handling:
+  max_retries: 3
+  retry_delay: 1000  # ms
+  on_error: "log:error"  # Where to send errors
+
+# Metrics configuration (optional)
+metrics:
+  enabled: true
+  port: 9090
+  path: "/metrics"
+  include_route_metrics: true
+  include_processor_metrics: true

@@ -55,10 +55,10 @@ install-deps:
 
 # Development
 test:
-	@echo "🔧 Installing package in development mode with all dependencies..."
-	cd ../python && pip install -e ".[dev]"
+	@echo "🔧 Installing dependencies with Poetry..."
+	cd ../python && poetry install --with dev,test
 	@echo "🚀 Running tests..."
-	cd ../python && PYTHONPATH=$PYTHONPATH:. python -m pytest tests/ -v
+	cd ../python && poetry run pytest tests/ -v
 	@echo "✅ Tests completed"
 
 lint:
