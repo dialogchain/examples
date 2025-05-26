@@ -55,7 +55,7 @@ install-deps:
 
 # Development
 test:
-	cd tests && python -m pytest -v
+	cd ../python && python -m pytest -v
 	@echo "✅ Tests completed"
 
 lint:
