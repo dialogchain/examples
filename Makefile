@@ -30,11 +30,11 @@ help:
 
 # Installation
 install:
-	pip install -e .
+	cd ../python && pip install -e .
 	@echo "✅ DialogChain installed"
 
 dev: install
-	pip install -e ".[dev]"
+	cd ../python && pip install -e ".[dev]"
 	@echo "✅ Development environment ready"
 
 # Dependencies for different languages
@@ -167,8 +167,18 @@ docker-run: docker
 # Examples and setup
 setup-env:
 	@if [ ! -f .env ]; then \
-		cp .env.example .env; \
-		echo "✅ Created .env file from template"; \
+		echo "# DialogChain Example Environment Variables" > .env; \
+		echo "# Add your environment variables here" >> .env; \
+		echo "" >> .env; \
+		echo "# Example: OPENAI_API_KEY=your_key_here" >> .env; \
+		echo "# Example: DIALOGCHAIN_LOG_LEVEL=INFO" >> .env; \
+		echo "" >> .env; \
+		echo "# Database configuration" >> .env; \
+		echo "# DIALOGCHAIN_DB_URI=sqlite:///dialogchain.db" >> .env; \
+		echo "" >> .env; \
+		echo "# External services" >> .env; \
+		echo "# OPENWEATHER_API_KEY=your_key_here" >> .env; \
+		echo "✅ Created .env file"; \
 		echo "📝 Please edit .env with your configuration"; \
 	else \
 		echo "⚠️  .env file already exists"; \
@@ -196,24 +206,29 @@ init-iot:
 	@echo "✅ IoT configuration template created"
 
 # Run examples
-run-example: setup-env
+run-example:
 	@if [ -z "$(EXAMPLE)" ]; then \
 		echo "Error: Please specify an example with EXAMPLE=name"; \
+		echo "Available examples: simple, grpc, iot, camera"; \
+		exit 1; \
+	fi
+	@if [ ! -f "$(EXAMPLE)_routes.yaml" ]; then \
+		echo "Error: Example '$(EXAMPLE)' not found. Please check the example name."; \
 		echo "Available examples: simple, grpc, iot, camera"; \
 		exit 1; \
 	fi
 	@echo "🚀 Starting $(EXAMPLE) example..."
 	@case "$(EXAMPLE)" in \
 		simple) \
-			poetry run dialogchain run -c examples/simple_routes.yaml ;; \
+			dialogchain run -c simple_routes.yaml ;; \
 		grpc) \
-			docker-compose -f examples/docker-compose.yml up -d grpc-server && \
-			poetry run dialogchain run -c examples/grpc_routes.yaml ;; \
+			docker-compose up -d grpc-server && \
+			dialogchain run -c grpc_routes.yaml ;; \
 		iot) \
-			docker-compose -f examples/docker-compose.yml up -d mosquitto && \
-			poetry run dialogchain run -c examples/iot_routes.yaml ;; \
+			docker-compose up -d mosquitto && \
+			dialogchain run -c iot_routes.yaml ;; \
 		camera) \
-			poetry run dialogchain run -c examples/camera_routes.yaml ;; \
+			dialogchain run -c camera_routes.yaml ;; \
 		*) \
 			echo "Error: Unknown example '$(EXAMPLE)'"; \
 			exit 1 ;; \
@@ -228,9 +243,9 @@ view-logs:
 	fi
 	@case "$(EXAMPLE)" in \
 		grpc|iot) \
-			docker-compose -f examples/docker-compose.yml logs -f ;; \
+			docker-compose logs -f ;; \
 		*) \
-			tail -f logs/dialogchain.log ;; \
+			tail -f logs/dialogchain.log 2>/dev/null || echo "No log file found. Run an example first." ;; \
 	esac
 
 # Stop a running example
