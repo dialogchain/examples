@@ -1,0 +1,28 @@
+# Basic DialogChain DSL Example
+# This YAML configuration replicates the functionality of basic_usage.py
+
+# Global settings
+settings:
+  log_level: "INFO"
+  log_format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  runtime_seconds: 15  # Run for 15 seconds, similar to the Python example
+
+# Route definitions
+routes:
+  - name: "timer_to_log"
+    description: "Simple timer that logs messages every 3 seconds"
+    from: "timer:tick"
+    parameters:
+      period: 3000  # 3 seconds in milliseconds
+    
+    # Processors (transformations)
+    processors:
+      - type: "transform"
+        template: |
+          {
+            "timestamp": "{{now()}}",
+            "message": "Hello from Timer Source!"
+          }
+    
+    # Destination
+    to: "log:info"

@@ -1,0 +1,23 @@
+# File Watcher Example
+# Watches a directory for new files and processes them
+
+routes:
+  - name: "file_processor"
+    description: "Processes new files in the input directory"
+    from: "file:./input?events=create"
+    
+    processors:
+      - type: "transform"
+        template: |
+          {
+            "event": "file_created",
+            "filename": "{{message.filename}}",
+            "timestamp": "{{now()}}",
+            "file_size": {{message.size}},
+            "processed_at": "{{now()}}",
+            "content": {{read_file(message.filename) | tojson}}
+          }
+    
+    to: 
+      - "log:info"
+      - "file:./output/processed_files.log"

@@ -1,0 +1,20 @@
+# Timer to Log Example
+# Logs a message at regular intervals
+
+routes:
+  - name: "timer_to_log"
+    description: "Logs a message every 3 seconds"
+    from: "timer:tick"
+    parameters:
+      period: 3000  # 3 seconds in milliseconds
+    
+    processors:
+      - type: "transform"
+        template: |
+          {
+            "timestamp": "{{now()}}",
+            "message": "Hello from Timer Source!",
+            "example_type": "timer_to_log"
+          }
+    
+    to: "log:info"

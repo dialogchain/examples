@@ -1,0 +1,23 @@
+# HTTP Handler Example
+# Creates a simple HTTP server that responds to requests
+
+routes:
+  - name: "http_hello"
+    description: "Responds to HTTP requests with a greeting"
+    from: "http://0.0.0.0:8080/hello"
+    
+    processors:
+      - type: "transform"
+        template: |
+          {
+            "status": "success",
+            "message": "Hello from DialogChain!",
+            "timestamp": "{{now()}}",
+            "method": "{{request.method}}",
+            "path": "{{request.path}}",
+            "query": {{request.query or {}}},
+            "headers": {{request.headers or {}}},
+            "body": {{request.body or {}}}
+          }
+    
+    to: "http:response"
