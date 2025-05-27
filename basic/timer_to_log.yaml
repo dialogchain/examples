@@ -4,15 +4,13 @@
 routes:
   - name: "timer_to_log"
     description: "Logs a message every 3 seconds"
-    from: "timer:tick"
-    parameters:
-      period: 3000  # 3 seconds in milliseconds
+    from: "timer:3s"
     
     processors:
       - type: "transform"
         template: |
           {
-            "timestamp": "{{now()}}",
+            "timestamp": "{{message.timestamp}}",
             "message": "Hello from Timer Source!",
             "example_type": "timer_to_log"
           }

@@ -1,8 +1,11 @@
 # Makefile for DialogChain Basic Examples
 
 # Configuration
-PYTHON = python3
-DC_CMD = cd ../../python && $(PYTHON) -m dialogchain.cli
+PYTHON = python3.11
+# Use the full path to the Python executable
+PYTHON_PATH := $(shell which python3)
+# Set PYTHONPATH to include the dialogchain source
+DC_CMD = PYTHONPATH=../../python $(PYTHON) -m dialogchain.cli
 CONFIG_DIR = .
 INPUT_DIR = input
 OUTPUT_DIR = output
@@ -30,8 +33,12 @@ help:
 # Dependencies
 deps:
 	@echo "\n${GREEN}Installing dependencies...${NC}"
-	pip install -e ../../python
-	pip install aiohttp python-dotenv
+	# Install minimal dependencies for basic examples
+	pip install -e .
+	# Install dialogchain in development mode without dependencies
+	cd ../../python && pip install -e . --no-deps && cd -
+	# Install any additional requirements
+	pip install aiohttp python-dotenv pyyaml
 
 # Setup
 dirs:
@@ -48,20 +55,23 @@ test: deps
 	@echo "\n${GREEN}Running tests...${NC}"
 	pytest -v
 
+# Set the PYTHONPATH to include the dialogchain source directory
+export PYTHONPATH := ../../python/src:$(PYTHONPATH)
+
 # Examples
 timer-to-log: dirs
 	@echo "\n${GREEN}Running Timer to Log example...${NC}"
-	$(DC_CMD) run --config $(CONFIG_DIR)/timer_to_log.yaml
+	cd ../../python && $(PYTHON) -m dialogchain.cli run --config ../examples/basic/timer_to_log.yaml
 
 http-handler: dirs
 	@echo "\n${GREEN}Running HTTP Handler example...${NC}"
 	@echo "Send a request: curl http://localhost:8080/hello"
-	$(DC_CMD) run --config $(CONFIG_DIR)/http_handler.yaml
+	cd ../../python && $(PYTHON) -m dialogchain.cli run --config ../examples/basic/http_handler.yaml
 
 file-watcher: dirs
 	@echo "\n${GREEN}Running File Watcher example...${NC}"
 	@echo "Create files in the $(INPUT_DIR) directory to see them processed"
-	$(DC_MD) run --config $(CONFIG_DIR)/file_watcher.yaml
+	cd ../../python && $(PYTHON) -m dialogchain.cli run --config ../examples/basic/file_watcher.yaml
 
 # Alias for setup
 setup: deps dirs
