@@ -1,23 +1,9 @@
-# File Watcher Example
-# Watches a directory for new files and processes them
+# Simple File Reader Example
+# Reads a file and logs its content
 
 routes:
-  - name: "file_processor"
-    description: "Processes new files in the input directory"
-    from: "file:./input?events=create"
-    
-    processors:
-      - type: "transform"
-        template: |
-          {
-            "event": "file_created",
-            "filename": "{{message.filename}}",
-            "timestamp": "{{now()}}",
-            "file_size": {{message.size}},
-            "processed_at": "{{now()}}",
-            "content": {{read_file(message.filename) | tojson}}
-          }
-    
+  - name: "file_reader"
+    description: "Reads a file and logs its content"
+    from: "file:///home/tom/github/dialogchain/examples/basic/input/example.txt"
     to: 
       - "log:info"
-      - "file:./output/processed_files.log"
