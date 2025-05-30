@@ -1,0 +1,9 @@
+# Simple File Reader Example
+# Reads a file and logs its content
+
+routes:
+  - name: "file_reader"
+    description: "Reads a file and logs its content"
+    from: "file:///home/tom/github/dialogchain/examples/basic/input/example.txt"
+    to: 
+      - "log:info"
