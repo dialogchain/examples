@@ -1,0 +1,20 @@
+# Simple Timer Example
+# This example demonstrates basic functionality without external dependencies
+
+routes:
+  # Simple timer that logs a message every 5 seconds
+  - name: "hello_world_timer"
+    from: "timer:tick"
+    parameters:
+      period: 5000  # 5 seconds in milliseconds
+    
+    processors:
+      - type: "transform"
+        template: |
+          {
+            "message": "Hello from DialogChain!",
+            "timestamp": "{{now()}}",
+            "counter": {{counter}}
+          }
+    
+    to: "log:info"

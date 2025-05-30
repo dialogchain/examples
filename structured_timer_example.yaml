@@ -1,0 +1,66 @@
+# Structured Timer Example
+# Demonstrates structured data processing with a timer
+
+routes:
+  # Timer that generates structured data
+  - name: "structured_timer"
+    description: "Generates and processes structured data on a timer"
+    from: "timer:10s"
+    
+    processors:
+      # Create a structured message
+      - type: "transform"
+        template: >-
+          {
+            "event": "sensor_update",
+            "timestamp": "{{timestamp}}",
+            "sensor": {
+              "id": "sensor_001",
+              "type": "temperature",
+              "value": {{range(20, 30) | random}},
+              "unit": "C",
+              "location": "server_room_a"
+            },
+            "status": "ok"
+          }
+      
+      # Add processing information
+      - type: "transform"
+        template: >-
+          {
+            "event": "{{event}}",
+            "timestamp": "{{timestamp}}",
+            "sensor": {
+              "id": "{{sensor.id}}",
+              "type": "{{sensor.type}}",
+              "value": {{sensor.value}},
+              "unit": "{{sensor.unit}}",
+              "location": "{{sensor.location}}",
+              "status": "{% if sensor.value > 28 %}warning_high{% elif sensor.value < 22 %}warning_low{% else %}normal{% endif %}"
+            },
+            "processing": {
+              "processed_at": "{{timestamp}}",
+              "processing_time_ms": 5
+            },
+            "status": "{{status}}"
+          }
+    
+    # Output to console and file
+    to:
+      - "log:info"
+      - "file:///home/tom/github/dialogchain/examples/output/sensor_updates.jsonl"
+
+  # Heartbeat for monitoring
+  - name: "heartbeat"
+    description: "Logs a heartbeat message"
+    from: "timer:30s"
+    processors:
+      - type: "transform"
+        template: >-
+          {
+            "type": "heartbeat",
+            "timestamp": "{{timestamp}}",
+            "service": "structured_timer",
+            "status": "running"
+          }
+    to: "log:info"

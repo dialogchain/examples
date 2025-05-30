@@ -1,0 +1,87 @@
+# JSON Processor Example
+# This example demonstrates processing JSON data with multiple transformations
+
+routes:
+  # JSON file processor with multiple transformations
+  - name: "json_processor"
+    description: "Processes JSON files with multiple transformations"
+    from: "file:///home/tom/github/dialogchain/examples/input/data.json"
+    
+    processors:
+      # 1. Parse the JSON content
+      - type: "transform"
+        template: >-
+          {
+            "filename": "{{path}}",
+            "timestamp": "{{timestamp}}",
+            "sensor_id": "{{content.sensor_id | default('unknown')}}",
+            "status": "{{content.status | default('unknown')}}",
+            "location": "{{content.location | default('unknown')}}",
+            "readings": {{content.readings | tojson}}
+          }
+      
+      # 2. Calculate statistics
+      - type: "transform"
+        template: >-
+          {
+            "filename": "{{filename}}",
+            "timestamp": "{{timestamp}}",
+            "sensor_id": "{{sensor_id}}",
+            "status": "{{status}}",
+            "location": "{{location}}",
+            "reading_count": {{readings | length}},
+            "first_reading": {{readings[0] | tojson}},
+            "last_reading": {{readings[-1] | tojson}},
+            "avg_value": {{(readings | map(attribute='value') | list | sum / (readings | length)) | round(2)}},
+            "max_value": {{readings | map(attribute='value') | list | max}},
+            "min_value": {{readings | map(attribute='value') | list | min}}
+          }
+      
+      # 3. Add status information
+      - type: "transform"
+        template: >-
+          {
+            "metadata": {
+              "filename": "{{filename}}",
+              "processed_at": "{{timestamp}}",
+              "sensor_id": "{{sensor_id}}",
+              "location": "{{location}}",
+              "status": "{{status}}",
+              "reading_count": {{reading_count}}
+            },
+            "statistics": {
+              "first_reading": {{first_reading | tojson}},
+              "last_reading": {{last_reading | tojson}},
+              "avg_value": {{avg_value}},
+              "max_value": {{max_value}},
+              "min_value": {{min_value}},
+              "value_range": {{(max_value - min_value) | round(2)}}
+            },
+            "alerts": [
+              {% if max_value > 28 %}
+                {"type": "high_temperature", "value": {{max_value}}, "threshold": 28}
+              {% endif %}
+              {% if min_value < 20 %}
+                {% if max_value > 28 %},{% endif %}
+                {"type": "low_temperature", "value": {{min_value}}, "threshold": 20}
+              {% endif %}
+            ]
+          }
+    
+    # Output to file with timestamp in the filename
+    to: "file:///home/tom/github/dialogchain/examples/output/processed_sensor_$(date +%Y%m%d_%H%M%S).json"
+    
+  # Heartbeat for monitoring
+  - name: "heartbeat"
+    description: "Logs a heartbeat message"
+    from: "timer:30s"
+    processors:
+      - type: "transform"
+        template: >-
+          {
+            "type": "heartbeat",
+            "timestamp": "{{timestamp}}",
+            "service": "json_processor",
+            "status": "running"
+          }
+    to: "log:info"

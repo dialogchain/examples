@@ -1,0 +1,3 @@
+Hello, DialogChain!
+This is a test file.
+It will be processed by the file watcher example.

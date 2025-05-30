@@ -1,0 +1,19 @@
+# File Watcher Example
+# This example watches a file for changes and processes its contents
+
+routes:
+  - name: "file_watcher"
+    description: "Watches a file for changes and processes its contents"
+    from: "file:///home/tom/github/dialogchain/examples/input/example.txt"
+    
+    processors:
+      - type: "transform"
+        template: |
+          {
+            "filename": "{{path}}",
+            "content": "{{content | tojson }}",
+            "timestamp": "{{timestamp}}",
+            "line_count": {{content.split('\n') | length - 1}}
+          }
+    
+    to: "file:///home/tom/github/dialogchain/examples/output/processed_example.json"

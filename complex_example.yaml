@@ -1,0 +1,41 @@
+# Complex DialogChain Example
+# This example demonstrates multiple features of DialogChain
+
+routes:
+  # File watcher that processes text files
+  - name: "file_processor"
+    description: "Processes text files from a directory"
+    from: "file:///home/tom/github/dialogchain/examples/input/example.txt"
+    
+    processors:
+      # Count lines and words
+      - type: "transform"
+        template: |
+          {
+            "filename": "{{path}}",
+            "timestamp": "{{timestamp}}",
+            "line_count": {{content.split('\n') | length - 1}},
+            "word_count": {{content.split() | length}},
+            "content_preview": "{{content[:100]}}..."
+          }
+    
+    # Send to both console and file
+    to: 
+      - "log:info"
+      - "file:///home/tom/github/dialogchain/examples/output/processed_files.jsonl"
+
+  # Simple timer that logs a message every 10 seconds
+  - name: "heartbeat"
+    description: "Logs a heartbeat message"
+    from: "timer:10s"
+    
+    processors:
+      - type: "transform"
+        template: |
+          {
+            "type": "heartbeat",
+            "timestamp": "{{timestamp}}",
+            "message": "DialogChain is running"
+          }
+    
+    to: "log:info"

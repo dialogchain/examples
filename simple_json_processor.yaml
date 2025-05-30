@@ -1,0 +1,42 @@
+# Simple JSON Processor Example
+# This example demonstrates basic JSON file processing
+
+routes:
+  # Simple JSON file processor
+  - name: "simple_json_processor"
+    description: "Processes JSON files and logs the content"
+    from: "file:///home/tom/github/dialogchain/examples/input/data.json"
+    
+    processors:
+      # Log the raw content
+      - type: "transform"
+        template: >-
+          {
+            "event": "file_processed",
+            "filename": "{{path}}",
+            "timestamp": "{{timestamp}}",
+            "sensor_id": "{{content.sensor_id}}",
+            "status": "{{content.status}}",
+            "location": "{{content.location}}",
+            "num_readings": {{content.readings | length}}
+          }
+    
+    # Output to console and file
+    to: 
+      - "log:info"
+      - "file:///home/tom/github/dialogchain/examples/output/processed_data.jsonl"
+
+  # Heartbeat for monitoring
+  - name: "heartbeat"
+    description: "Logs a heartbeat message"
+    from: "timer:30s"
+    processors:
+      - type: "transform"
+        template: >-
+          {
+            "type": "heartbeat",
+            "timestamp": "{{timestamp}}",
+            "service": "simple_json_processor",
+            "status": "running"
+          }
+    to: "log:info"

@@ -1,0 +1,36 @@
+# Simple Timer Example
+# Demonstrates basic timer functionality with minimal processing
+
+routes:
+  # Basic timer that logs a message
+  - name: "simple_timer"
+    description: "Simple timer that logs a message"
+    from: "timer:5s"
+    
+    processors:
+      # Create a simple message
+      - type: "transform"
+        template: >-
+          {
+            "message": "Hello from DialogChain",
+            "timestamp": "{{timestamp}}",
+            "count": {{range(1, 100) | random}}
+          }
+    
+    # Output to console
+    to: "log:info"
+
+  # Heartbeat for monitoring
+  - name: "heartbeat"
+    description: "Logs a heartbeat message"
+    from: "timer:30s"
+    processors:
+      - type: "transform"
+        template: >-
+          {
+            "type": "heartbeat",
+            "timestamp": "{{timestamp}}",
+            "service": "simple_timer",
+            "status": "running"
+          }
+    to: "log:info"

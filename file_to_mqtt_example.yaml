@@ -1,0 +1,39 @@
+# File to MQTT Example
+# This example watches a directory for new files and publishes their content to MQTT
+
+routes:
+  # File watcher that processes text files and sends to MQTT
+  - name: "file_to_mqtt"
+    description: "Watches for new files and publishes content to MQTT"
+    from: "file:///home/tom/github/dialogchain/examples/input/mqtt_input.txt"
+    
+    processors:
+      # Process file content
+      - type: "transform"
+        template: |
+          {
+            "filename": "{{path}}",
+            "timestamp": "{{timestamp}}",
+            "content": {{content | tojson}},
+            "line_count": {{content.split('\n') | length - 1}},
+            "word_count": {{content.split() | length}}
+          }
+    
+    # Log to file for testing
+    to: "file:///home/tom/github/dialogchain/examples/output/file_events.jsonl"
+
+  # Simple timer that logs a heartbeat message
+  - name: "heartbeat"
+    description: "Logs a heartbeat message"
+    from: "timer:30s"
+    
+    processors:
+      - type: "transform"
+        template: |
+          {
+            "type": "heartbeat",
+            "timestamp": "{{timestamp}}",
+            "message": "File to MQTT service is running"
+          }
+    
+    to: "log:info"

@@ -1,0 +1,12 @@
+{
+  "sensor_id": "sensor_001",
+  "readings": [
+    {"timestamp": "2025-05-30T10:00:00Z", "value": 25.4, "unit": "C"},
+    {"timestamp": "2025-05-30T10:15:00Z", "value": 26.1, "unit": "C"},
+    {"timestamp": "2025-05-30T10:30:00Z", "value": 27.3, "unit": "C"},
+    {"timestamp": "2025-05-30T10:45:00Z", "value": 25.9, "unit": "C"},
+    {"timestamp": "2025-05-30T11:00:00Z", "value": 28.5, "unit": "C"}
+  ],
+  "status": "active",
+  "location": "server_room_a"
+}

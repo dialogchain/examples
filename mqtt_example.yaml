@@ -1,0 +1,37 @@
+# MQTT Example
+# This example shows how to use MQTT with DialogChain
+
+routes:
+  # MQTT Subscriber - Listens for messages on a topic
+  - name: "mqtt_subscriber"
+    description: "Subscribes to MQTT topic and logs messages"
+    from: "mqtt://localhost:1883/test/topic"
+    
+    processors:
+      - type: "transform"
+        template: |
+          {
+            "status": "received",
+            "topic": "{{message.topic}}",
+            "payload": {{message.payload}},
+            "timestamp": "{{message.timestamp or now()}}"
+          }
+    
+    to: "log:info"
+
+  # Timer that publishes MQTT messages
+  - name: "mqtt_publisher"
+    description: "Publishes a message to MQTT topic every 5 seconds"
+    from: "timer:5s"
+    
+    processors:
+      - type: "transform"
+        template: |
+          {
+            "message": "Hello from DialogChain MQTT Publisher!",
+            "timestamp": "{{now()}}",
+            "counter": {{counter or 0}},
+            "source": "dialogchain_example"
+          }
+    
+    to: "mqtt://localhost:1883/test/topic"
