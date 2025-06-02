@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "email-invoice-processor"
-version = "0.1.3"
+version = "0.1.8"
 description = "Email invoice processor with OCR capabilities"
 authors = ["Tom Sapletta <info@softreck.dev>"]
 license = "Apache-2.0"

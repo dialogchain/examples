@@ -1,4 +1,4 @@
-.PHONY: help setup install test run clean lint format typecheck dev-requirements
+.PHONY: help setup install test run clean lint format typecheck dev-requirements version publish release-patch release-minor release-major
 
 # Project variables
 PROJECT_NAME = email-invoice-processor
@@ -26,6 +26,7 @@ help:
 	@echo "  make format       - Format the code"
 	@echo "  make run          - Run the email processor"
 	@echo "  make clean        - Clean up temporary files"
+	@echo "  make version      - Bump version (use with PART=[patch|minor|major])"
 
 # Setup development environment
 setup: venv requirements-dev.txt
@@ -44,16 +45,39 @@ venv:
 # Install the package in development mode
 install:
 	$(PIP_VENV) install -e .
+	$(PIP_VENV) install python-nmap opencv-python pycups
 
 # Run tests
-test:
-	$(PYTEST) tests/ -v --cov=email_processor --cov-report=term-missing
+test: test-unit test-integration test-e2e
+
+# Run unit tests
+test-unit:
+	$(PYTEST) tests/unit/ -v --cov=email_processor --cov-report=term-missing
+
+# Run integration tests
+test-integration:
+	$(PYTEST) tests/integration/ -v --cov=email_processor --cov-append
+
+# Run end-to-end tests
+test-e2e:
+	$(PYTEST) tests/e2e/ -v --cov=email_processor --cov-append
+
+# Run tests with coverage report
+coverage:
+	@coverage erase
+	@coverage run -m pytest
+	@coverage report -m
+	@coverage html
+	@echo "📊 Coverage report available at htmlcov/index.html"
 
 # Run code style checks
 lint:
-	$(FLAKE8) email_processor tests
-	$(BLACK) --check email_processor tests
-	$(ISORT) --check-only email_processor tests
+	@echo "🔍 Running flake8..."
+	$(FLAKE8) email_processor tests/
+	@echo "🎨 Checking code formatting with black..."
+	$(BLACK) --check email_processor tests/
+	@echo "📝 Checking import ordering..."
+	$(ISORT) --check-only --profile black email_processor/ tests/
 
 # Run type checking
 typecheck:
@@ -61,8 +85,10 @@ typecheck:
 
 # Format the code
 format:
+	@echo "🎨 Formatting code with black..."
 	$(BLACK) email_processor tests
-	$(ISORT) email_processor tests
+	@echo "📝 Sorting imports..."
+	$(ISORT) --profile black email_processor tests
 
 # Run the email processor
 run:
@@ -71,7 +97,7 @@ run:
 # Stop Docker containers and remove volumes
 stop:
 	@echo "Stopping all Docker containers and removing volumes..."
-	@docker-compose -f ../docker-compose.yml down -v --remove-orphans || true
+	@docker-compose -f docker-compose.yml down -v --remove-orphans || true
 	@echo "✅ All Docker containers stopped and volumes removed"
 
 # Clean up
@@ -84,6 +110,40 @@ clean: stop
 	find . -type d -name '.coverage' -delete
 	find . -type d -name 'htmlcov' -exec rm -rf {} +
 	find . -type d -name '*.egg-info' -exec rm -rf {} +
+
+# Version management
+version:
+	@if [ -z "$(PART)" ]; then \
+		echo "Error: Please specify version part with PART=patch|minor|major"; \
+		exit 1; \
+	fi
+	@echo "🔄 Bumping $(PART) version..."
+	@bump2version $(PART) --allow-dirty
+	@echo "✅ New version: $$(python -c 'import email_processor; print(email_processor.__version__)')"
+
+# Publish to PyPI
+publish:
+	@echo "🚀 Publishing to PyPI..."
+	rm -rf dist/*
+	python setup.py sdist bdist_wheel
+	twine upload dist/*
+	@echo "✅ Published to PyPI"
+
+# Release helpers
+release-patch:
+	@echo "🚀 Starting patch release..."
+	$(MAKE) version PART=patch
+	$(MAKE) publish
+
+release-minor:
+	@echo "🚀 Starting minor release..."
+	$(MAKE) version PART=minor
+	$(MAKE) publish
+
+release-major:
+	@echo "🚀 Starting major release..."
+	$(MAKE) version PART=major
+	$(MAKE) publish
 
 # Generate development requirements
 dev-requirements: requirements-dev.txt
@@ -101,104 +161,6 @@ requirements-dev.txt: requirements.txt
 
 # Default target
 .DEFAULT_GOAL := help
-
-
-
-# Installation
-install:
-	pip install -e .
-	pip install python-nmap opencv-python pycups
-	@echo "✅ DialogChain installed"
-
-venv:
-	python3 -m venv venv
-	source venv/bin/activate
-	@echo "✅ Virtual environment created"
-
-dev: install
-	pip install -e ".[dev]"
-	@echo "✅ Development environment ready"
-
-# Dependencies for different languages
-install-deps:
-	@echo "Installing dependencies for external processors..."
-	# Python NLP dependencies
-	pip install transformers spacy nltk
-
-	# Check if Go is installed (optional)
-	@which go > /dev/null && echo "✅ Go found: $$(go version)" || echo "ℹ️  Go not found. Install from https://golang.org/dl/ if needed"
-
-	# Check if Node.js is installed (optional)
-	@which node > /dev/null && echo "✅ Node.js found: $$(node --version)" || echo "ℹ️  Node.js not found. Install from https://nodejs.org/ if needed"
-
-	# Check if Rust is installed
-	@which cargo > /dev/null || (echo "⚠️  Rust not found. Install from https://rustup.rs/")
-	@which cargo > /dev/null && echo "✅ Rust found: $$(cargo --version)"
-
-# Development
-test: venv test-unit test-integration test-e2e
-
-# Run unit tests
-test-unit:
-	@pytest tests/unit/ -v --cov=src/dialogchain --cov-report=term-missing
-	@echo "✅ Unit tests completed"
-
-# Run integration tests
-test-integration:
-	@pytest tests/integration/ -v --cov=src/dialogchain --cov-append
-	@echo "✅ Integration tests completed"
-
-# Run end-to-end tests
-test-e2e:
-	@pytest tests/e2e/ -v --cov=src/dialogchain --cov-append
-	@echo "✅ End-to-end tests completed"
-
-# Run tests with coverage report
-coverage:
-	@coverage erase
-	@coverage run -m pytest
-	@coverage report -m
-	@coverage html
-	@echo "📊 Coverage report available at htmlcov/index.html"
-
-# Run type checking
-typecheck:
-	@mypy src/dialogchain/
-	@echo "✅ Type checking completed"
-
-# Run all linters
-lint:
-	@echo "🔍 Running flake8..."
-	@flake8 src/dialogchain/ tests/
-	@echo "🎨 Checking code formatting with black..."
-	@black --check src/dialogchain/ tests/
-	@echo "📝 Checking import ordering..."
-	@isort --check-only --profile black src/dialogchain/ tests/
-	@echo "✅ Linting completed"
-
-# Format code
-format:
-	@echo "🎨 Formatting code with black..."
-	@black src/dialogchain/ tests/
-	@echo "📝 Sorting imports..."
-	@isort --profile black src/dialogchain/ tests/
-	@echo "✅ Code formatted"
-
-# Check code style without making changes
-check-codestyle:
-	@black --check --diff src/dialogchain/ tests/
-	@isort --check-only --profile black src/dialogchain/ tests/
-
-
-# Run all checks (lint, typecheck, test)
-check-all: lint typecheck test
-	@echo "✨ All checks passed!"
-
-# Install pre-commit hooks
-pre-commit-install:
-	@pre-commit install
-	@pre-commit install --hook-type pre-push
-	@echo "✅ Pre-commit hooks installed"
 
 # Setup development environment
 setup-dev-env: install pre-commit-install
@@ -219,6 +181,8 @@ build: clean
 
 # Version management
 version:
+	@$(MAKE) version PART=patch
+	@echo "🔄 Bumping version..."
 	@if [ -z "$(PART)" ]; then \
 		echo "Error: Please specify version part with PART=patch|minor|major"; \
 		exit 1; \
@@ -228,6 +192,7 @@ version:
 	git commit -m "Bump version to $$(poetry version --short)"
 	git tag -a "v$$(poetry version --short)" -m "Version $$(poetry version --short)"
 	@echo "✅ Version bumped and tagged. Don't forget to push with tags: git push --follow-tags"
+
 
 # View recent logs from the application
 LINES ?= 50  # Default number of lines to show
@@ -258,9 +223,7 @@ endef
 PYPI_TOKEN_FROM_FILE := $(call get_pypi_token)
 
 # Publishing
-publish: venv
-	@echo "🔄 Bumping version..."
-	poetry version patch
+publish: venv version
 	@echo "🧹 Cleaning build artifacts..."
 	@$(MAKE) clean
 	@echo "🏗️  Building package..."

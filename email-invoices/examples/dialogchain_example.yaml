@@ -1,0 +1,178 @@
+# DialogChain configuration for invoice processing
+# This file demonstrates how to define conversation flows for processing invoices
+
+# Define the main flow
+flows:
+  invoice_processing:
+    # Initial system message that sets the context
+    system: |
+      You are an AI assistant specialized in processing invoices. 
+      Extract key information from the provided invoice text.
+    
+    # Define the steps in the conversation
+    steps:
+      - name: extract_invoice_data
+        prompt: |
+          Extract the following information from the invoice:
+          - Invoice number
+          - Issue date
+          - Due date
+          - Vendor name
+          - Vendor tax ID
+          - Total amount
+          - Currency
+          - Line items (description, quantity, unit price, total)
+          
+          Invoice text:
+          {{ invoice_text }}
+          
+          Return the data in JSON format.
+        
+        # Configure the model and parameters
+        model: gpt-4-turbo
+        temperature: 0.2
+        max_tokens: 2000
+        
+        # Define expected output format
+        output_format:
+          type: json
+          schema:
+            type: object
+            properties:
+              invoice_number:
+                type: string
+                description: The unique identifier for the invoice
+              issue_date:
+                type: string
+                format: date
+                description: Date when the invoice was issued
+              due_date:
+                type: string
+                format: date
+                description: Date when payment is due
+              vendor_name:
+                type: string
+                description: Name of the vendor/company
+              vendor_tax_id:
+                type: string
+                description: Tax identification number of the vendor
+              total_amount:
+                type: number
+                description: Total amount to be paid
+              currency:
+                type: string
+                description: Currency code (e.g., USD, EUR)
+              line_items:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    description:
+                      type: string
+                      description: Description of the item
+                    quantity:
+                      type: number
+                      description: Quantity of the item
+                    unit_price:
+                      type: number
+                      description: Price per unit
+                    total:
+                      type: number
+                      description: Total price for this line item
+
+# Example of a validation flow
+  validate_invoice:
+    system: |
+      You are an AI assistant that validates invoice data.
+      Check if the provided invoice data is complete and consistent.
+    
+    steps:
+      - name: validate_invoice_data
+        prompt: |
+          Validate the following invoice data:
+          {{ invoice_data | tojson(indent=2) }}
+          
+          Check for:
+          1. Required fields are present
+          2. Dates are in correct format
+          3. Line items add up to the total amount
+          4. Tax calculations are correct
+          
+          Return a JSON object with validation results.
+        
+        model: gpt-4-turbo
+        temperature: 0.1
+        
+        output_format:
+          type: json
+          schema:
+            type: object
+            properties:
+              is_valid:
+                type: boolean
+                description: Whether the invoice data is valid
+              errors:
+                type: array
+                items:
+                  type: string
+                  description: Description of validation errors
+              warnings:
+                type: array
+                items:
+                  type: string
+                  description: Non-critical issues found
+
+# Example of a classification flow
+  classify_document:
+    system: |
+      You are an AI assistant that classifies financial documents.
+      Determine the type of document and extract key information.
+    
+    steps:
+      - name: classify_and_extract
+        prompt: |
+          Document text:
+          {{ document_text }}
+          
+          Classify this document and extract key information.
+          
+          Document types:
+          - Invoice
+          - Receipt
+          - Credit Note
+          - Purchase Order
+          - Other
+          
+          For invoices also extract:
+          - Invoice number
+          - Total amount
+          - Currency
+          - Issue date
+          
+          For receipts also extract:
+          - Merchant name
+          - Total amount
+          - Date
+          - Payment method
+          
+          Return the results in JSON format.
+        
+        model: gpt-4-turbo
+        temperature: 0.1
+        
+        output_format:
+          type: json
+          schema:
+            type: object
+            properties:
+              document_type:
+                type: string
+                enum: ["Invoice", "Receipt", "Credit Note", "Purchase Order", "Other"]
+              confidence:
+                type: number
+                minimum: 0
+                maximum: 1
+                description: Confidence score for the classification
+              extracted_data:
+                type: object
+                description: Extracted information based on document type

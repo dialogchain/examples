@@ -36,6 +36,7 @@ make list-examples | grep integrations/
 
 # Run a specific integration example
 make run-example EXAMPLE=integrations/mqtt/basic
+make run-example EXAMPLE=integrations/email/
 ```
 
 ## Prerequisites

@@ -108,11 +108,41 @@ class TestEmailProcessor:
         part.get_payload.assert_called_once_with(decode=True)
         mock_open.assert_called_once_with(expected_path, 'wb')
         
-        # Verify the directories were created
+        # Verify the original directory was created
         expected_dir_path = os.path.join(sample_config['output_dir'], "20250602_123456")
         expected_original_dir = os.path.join(expected_dir_path, "original")
+        
+        # Check that makedirs was called for the original directory
+        mock_makedirs.assert_called_with(expected_original_dir, exist_ok=True)
+    
+    @patch('builtins.open')
+    @patch('email_processor.process_invoices.datetime')
+    @patch('os.makedirs')
+    @patch('email_processor.process_invoices.AIProcessor.is_enabled')
+    def test_process_attachment_with_ai_creates_processed_dir(self, mock_ai_enabled, mock_makedirs, 
+                                                             mock_datetime, mock_open, sample_config, tmp_path):
+        """Test that processed directory is created when AI processing is enabled."""
+        # Setup
+        mock_datetime.now.return_value.strftime.return_value = "20250602_123456"
+        mock_ai_enabled.return_value = True  # Enable AI processing
+        
+        processor = EmailProcessor(sample_config)
+        part = MagicMock()
+        part.get_filename.return_value = "test.pdf"
+        part.get_payload.return_value = b"test content"
+        
+        # Mock the AI processor's process_invoice method
+        mock_ai_processor = MagicMock()
+        mock_ai_processor.is_enabled.return_value = True
+        mock_ai_processor.process_invoice.return_value = {"status": "processed"}
+        processor.ai_processor = mock_ai_processor
+        
+        # Test
+        processor._process_attachment(part)
+        
+        # Verify the processed directory was created
+        expected_dir_path = os.path.join(sample_config['output_dir'], "20250602_123456")
         expected_processed_dir = os.path.join(expected_dir_path, "processed")
         
-        # Check that makedirs was called for both directories
-        mock_makedirs.assert_any_call(expected_original_dir, exist_ok=True)
+        # Check that makedirs was called for the processed directory
         mock_makedirs.assert_any_call(expected_processed_dir, exist_ok=True)
