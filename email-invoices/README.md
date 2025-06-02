@@ -1,6 +1,6 @@
 # Email Invoice Processor
 
-This is an email invoice processor that demonstrates how to use the Taskinity DSL for processing email attachments with local OCR processing. The processor can be run both locally and in Docker containers.
+This is an email invoice processor that demonstrates how to use the Dialogchain for processing email attachments with local OCR processing. The processor can be run both locally and in Docker containers.
 
 ## Features
 

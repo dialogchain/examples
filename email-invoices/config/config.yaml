@@ -1,0 +1,59 @@
+# Email Processor Configuration
+
+# Email settings
+email:
+  server: ${EMAIL_SERVER:mailhog}
+  port: ${EMAIL_PORT:1025}
+  username: ${EMAIL_USERNAME:}
+  password: ${EMAIL_PASSWORD:}
+  folder: ${EMAIL_FOLDER:INBOX}
+  ssl: ${EMAIL_SSL:true}
+  timeout: 30
+
+# Processing settings
+processing:
+  output_dir: ${OUTPUT_DIR:./output}
+  file_extensions:
+    - .pdf
+    - .jpg
+    - .jpeg
+    - .png
+    - .tiff
+  max_attachment_size_mb: 10
+  keep_original_attachments: true
+
+# DialogChain integration
+dialogchain:
+  enabled: ${USE_DIALOGCHAIN:false}
+  model: ${DIALOGCHAIN_MODEL:gpt-3.5-turbo}
+  api_key: ${DIALOGCHAIN_API_KEY:}
+  max_tokens: ${DIALOGCHAIN_MAX_TOKENS:1000}
+  temperature: ${DIALOGCHAIN_TEMPERATURE:0.7}
+  system_prompt: |
+    You are an AI assistant that helps process and extract information from invoices.
+    Extract key information such as invoice number, date, total amount, vendor name,
+    and line items. Return the data in a structured JSON format.
+
+# OCR settings
+ocr:
+  enabled: true
+  tesseract_cmd: ${TESSERACT_CMD:/usr/bin/tesseract}
+  languages:
+    - eng
+  dpi: 300
+  convert_to_grayscale: true
+
+# Logging
+logging:
+  level: ${LOG_LEVEL:INFO}
+  file: ${LOG_FILE:./logs/email_processor.log}
+  max_size_mb: 10
+  backup_count: 5
+
+# API server (optional)
+server:
+  enabled: false
+  host: 0.0.0.0
+  port: 8000
+  reload: false
+  workers: 1

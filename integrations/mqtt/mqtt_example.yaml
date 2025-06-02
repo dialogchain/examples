@@ -1,11 +1,14 @@
-# MQTT Example
-# This example shows how to use MQTT with DialogChain
+# MQTT Example with Environment Variables
+# This example shows how to use MQTT with DialogChain using environment variables
+
+# Load environment variables from .env file
+env_file: .env
 
 routes:
   # MQTT Subscriber - Listens for messages on a topic
   - name: "mqtt_subscriber"
     description: "Subscribes to MQTT topic and logs messages"
-    from: "mqtt://localhost:1883/test/topic"
+    from: "mqtt://${MQTT_HOST}:${MQTT_PORT}/${MQTT_TOPIC}"
     
     processors:
       - type: "transform"
@@ -14,7 +17,10 @@ routes:
             "status": "received",
             "topic": "{{message.topic}}",
             "payload": {{message.payload}},
-            "timestamp": "{{message.timestamp or now()}}"
+            "timestamp": "{{message.timestamp or now()}}",
+            "env_mqtt_host": "${MQTT_HOST}",
+            "env_mqtt_port": "${MQTT_PORT}",
+            "env_mqtt_topic": "${MQTT_TOPIC}"
           }
     
     to: "log:info"
@@ -31,7 +37,10 @@ routes:
             "message": "Hello from DialogChain MQTT Publisher!",
             "timestamp": "{{now()}}",
             "counter": {{counter or 0}},
-            "source": "dialogchain_example"
+            "source": "dialogchain_example",
+            "env_mqtt_host": "${MQTT_HOST}",
+            "env_mqtt_port": "${MQTT_PORT}",
+            "env_mqtt_topic": "${MQTT_TOPIC}"
           }
     
-    to: "mqtt://localhost:1883/test/topic"
+    to: "mqtt://${MQTT_HOST}:${MQTT_PORT}/${MQTT_TOPIC}"

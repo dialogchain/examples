@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  email-processor:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: email-invoice-processor
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      - ./output:/app/output
+      - ./logs:/app/logs
+      - ./config:/app/config
+    depends_on:
+      - mailhog
+    environment:
+      - EMAIL_SERVER=mailhog
+      - EMAIL_PORT=1025
+      - EMAIL_USERNAME=
+      - EMAIL_PASSWORD=
+      - EMAIL_FOLDER=INBOX
+      - OUTPUT_DIR=/app/output
+      - LOG_LEVEL=INFO
+
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: mailhog
+    ports:
+      - "8025:8025"  # Web UI
+      - "1025:1025"  # SMTP server
+    environment:
+      - MH_UI_WEB_PATH=/
+      - MH_MAILDIR_PATH=/maildir
+    volumes:
+      - maildir:/maildir
+
+volumes:
+  maildir:
+    driver: local
