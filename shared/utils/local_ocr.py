@@ -17,6 +17,8 @@ import numpy as np
 from PIL import Image
 import pytesseract
 from pdf2image import convert_from_bytes
+from dialogchain.utils.logger import setup_logger
+logger = setup_logger(__name__)
 
 class LocalOCRProcessor:
     """Local OCR processor using Tesseract OCR."""
@@ -283,11 +285,11 @@ if __name__ == "__main__":
             print(result.get('text', 'No text extracted'))
             
             if 'pages' in result:
-                print(f"\nProcessed {len(result['pages'])} pages")
+                logger.info(f"\nProcessed {len(result['pages'])} pages")
         else:
-            print(f"Error processing file: {result.get('error', 'Unknown error')}")
+            logger.info(f"Error processing file: {result.get('error', 'Unknown error')}")
             
     except Exception as e:
-        print(f"Error: {e}", file=sys.stderr)
+        logger.info(f"Error: {e}", file=sys.stderr)
     finally:
         processor.cleanup()

@@ -14,6 +14,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Optional, Any
 from urllib.parse import urlparse
+from dialogchain.utils.logger import setup_logger
+logger = setup_logger(__name__)
 
 # Configure logging
 logging.basicConfig(
@@ -200,7 +202,7 @@ def main():
         # Print summary
         print("\n=== Processing Complete ===")
         for provider, invoices in results.items():
-            print(f"{provider}: {len(invoices)} invoices processed")
+            logger.info(f"{provider}: {len(invoices)} invoices processed")
         
         return 0
         
