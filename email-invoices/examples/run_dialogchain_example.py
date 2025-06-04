@@ -6,7 +6,7 @@ import os
 import json
 import yaml
 from pathlib import Path
-from dialogchain.engine import CamelRouterEngine
+from dialogchain.engine import DialogChainEngine
 
 # Load the DialogChain configuration
 config_path = Path(__file__).parent / 'dialogchain_example.yaml'
@@ -14,7 +14,7 @@ with open(config_path, 'r') as f:
     dialog_config = yaml.safe_load(f)
 
 # Initialize the DialogChain engine
-engine = CamelRouterEngine(config=dialog_config)
+engine = DialogChainEngine(config=dialog_config)
 
 def process_invoice_example():
     """Example of processing an invoice using the invoice_processing flow."""

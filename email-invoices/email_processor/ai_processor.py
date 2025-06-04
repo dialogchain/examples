@@ -9,7 +9,7 @@ from typing import Dict, Any, Optional
 import json
 import os
 
-from dialogchain.engine import CamelRouterEngine as DialogChain
+from dialogchain.engine import DialogChainEngine as DialogChain
 from langchain_core.messages import HumanMessage, SystemMessage
 
 logger = logging.getLogger(__name__)
