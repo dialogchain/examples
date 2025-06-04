@@ -1,13 +1,13 @@
-# Email Invoice Processor
+# Email Invoice Processor with DialogChain
 
-This is an email invoice processor that demonstrates how to use the Dialogchain for processing email attachments with local OCR processing. The processor can be run both locally and in Docker containers.
+This is an email invoice processor that demonstrates how to use DialogChain for processing email attachments with local OCR processing. The processor can be run both locally and in Docker containers.
 
 ## Features
 
 - Fetches emails from IMAP server
 - Processes email attachments (PDF, JPG, PNG, TIFF, BMP)
 - Local OCR processing with Tesseract
-- Extracts invoice data to structured format
+- Extracts invoice data to structured format using DialogChain AI
 - Configurable through YAML and environment variables
 - Docker support for easy setup and testing
 - Test environment with sample emails
@@ -26,16 +26,18 @@ This is an email invoice processor that demonstrates how to use the Dialogchain 
 - Docker 20.10+
 - Docker Compose 2.0+
 
-## Quick Start with Docker
+## Quick Start
+
+### Option 1: Using Docker (Recommended)
 
 The easiest way to get started is using Docker Compose, which will set up everything you need, including a test mail server:
 
 ```bash
 # Navigate to the project root
-cd /path/to/taskinity-dsl
+cd /path/to/dialogchain/examples/email-invoices
 
 # Start all services in detached mode
-docker-compose -f examples/docker-compose.yml up -d
+docker-compose up -d
 
 # View the MailHog web interface at http://localhost:8025
 # The email processor will be running and processing emails
@@ -44,10 +46,76 @@ docker-compose -f examples/docker-compose.yml up -d
 ./test_scripts/load_test_emails.sh
 
 # View the email processor logs
-docker logs -f email-invoice-processor
+docker-compose logs -f email-processor
 ```
 
-### Services
+### Option 2: Local Development Setup
+
+1. First, set up the Python virtual environment:
+
+```bash
+# Create and activate virtual environment
+python -m venv .venv
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Install the package in development mode
+pip install -e .
+```
+
+2. Configure your environment:
+
+```bash
+# Copy the example environment file
+cp .env.example .env
+
+# Edit the .env file with your email settings
+# For testing with MailHog:
+# IMAP_SERVER=mailhog
+# IMAP_PORT=1025
+# IMAP_USERNAME=test@example.com
+# IMAP_PASSWORD=test
+```
+
+3. Run the email processor:
+
+```bash
+# Run the processor directly
+python -m email_processor --config process_invoices.yaml
+
+# Or use the Makefile
+make run
+```
+
+## Running Examples with DialogChain
+
+This project includes example DialogChain configurations for processing invoices. To run the examples:
+
+```bash
+# Install DialogChain if not already installed
+git clone https://github.com/yourusername/dialogchain.git
+cd dialogchain
+pip install -e .
+
+# Navigate back to the examples
+cd examples/email-invoices
+
+# Run the DialogChain example
+make run-example
+```
+
+### Example DialogChain Flow
+
+The example includes a pre-configured DialogChain flow that:
+1. Processes incoming email attachments
+2. Extracts text using OCR
+3. Identifies invoice data using AI
+4. Validates the extracted information
+5. Outputs structured JSON data
+
+## Services
 
 - **MailHog**: Test SMTP server with web UI (http://localhost:8025)
 - **Email Processor**: Processes incoming emails and extracts invoice data
